@@ -1,0 +1,167 @@
+// SCHÉMA PRISMA — Price Hunter
+// PostgreSQL. Montants en centimes entiers (jamais de flottants).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+  alerts       Alert[]
+  notifications Notification[]
+}
+
+model Merchant {
+  id        String  @id // "merchant:ebay"
+  name      String
+  active    Boolean @default(true)
+  offers    Offer[]
+  priceHistory PriceHistory[]
+}
+
+model Product {
+  id        String   @id @default(cuid())
+  title     String
+  imageUrl  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  identifiers ProductIdentifier[]
+  offers    Offer[]
+  priceHistory PriceHistory[]
+  alerts    Alert[]
+}
+
+model ProductIdentifier {
+  id       String @id @default(cuid())
+  productId String
+  product  Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  /** EAN | MPN | SKU | MODEL | TITLE */
+  type     String
+  value    String
+  normalizedValue String
+  @@unique([type, value])
+  @@index([productId])
+}
+
+model Offer {
+  id                String   @id @default(cuid())
+  productId         String
+  product           Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  merchantId        String
+  merchant          Merchant @relation(fields: [merchantId], references: [id])
+  merchantProductId String
+  title             String
+  displayedPriceCents Int?
+  currency          String   @default("EUR")
+  /** IN_STOCK | PREORDER | OUT_OF_STOCK | UNKNOWN */
+  availability      String   @default("UNKNOWN")
+  /** FREE | PAID | UNKNOWN | CALCULATED_AT_CHECKOUT */
+  shippingStatus    String   @default("UNKNOWN")
+  shippingCents     Int?
+  finalPriceCents   Int?
+  /** EXACT | PARTIAL | UNVERIFIABLE */
+  confidence        String   @default("UNVERIFIABLE")
+  url               String?
+  marketplace       Boolean  @default(false)
+  lastCheckedAt     DateTime @default(now())
+  createdAt         DateTime @default(now())
+  priceHistory      PriceHistory[]
+  @@unique([merchantId, merchantProductId])
+  @@index([productId])
+  @@index([productId, finalPriceCents])
+}
+
+model PriceHistory {
+  id        String   @id @default(cuid())
+  offerId   String
+  offer     Offer    @relation(fields: [offerId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  merchantId String
+  merchant  Merchant @relation(fields: [merchantId], references: [id])
+  priceCents Int?
+  shippingCents Int?
+  finalPriceCents Int?
+  promotionCents Int?
+  couponCents Int?
+  timestamp DateTime @default(now())
+  @@index([productId, timestamp])
+}
+
+model Promotion {
+  id        String  @id @default(cuid())
+  offerId   String
+  offer     Offer   @relation(fields: [offerId], references: [id], onDelete: Cascade)
+  label     String
+  amountCents Int
+  /** IMMEDIATE | PROMOTION */
+  kind      String  @default("PROMOTION")
+  /** VERIFIED | UNVERIFIED */
+  verificationStatus String @default("UNVERIFIED")
+  conditions Json?
+  startsAt  DateTime?
+  endsAt    DateTime?
+}
+
+model Coupon {
+  id        String   @id @default(cuid())
+  merchantId String
+  merchant  Merchant @relation(fields: [merchantId], references: [id])
+  code      String
+  /** FIXED | PERCENT */
+  discountType String
+  discountValue Int
+  minimumBasketCents Int?
+  expirationDate DateTime?
+  conditions String?
+  source    String
+  /** VERIFIED | UNVERIFIED | EXPIRED | INVALID */
+  verificationStatus String @default("UNVERIFIED")
+  lastVerifiedAt DateTime?
+  createdAt DateTime @default(now())
+  @@unique([merchantId, code])
+}
+
+model Alert {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  /** BELOW_PRICE | NEW_BEST_PRICE | BELOW_PRICE_WITH_COUPON | EXCELLENT_DEAL */
+  type      String
+  targetPriceCents Int?
+  frequencyHours Int @default(6)
+  active    Boolean  @default(true)
+  lastCheckedAt DateTime?
+  lastTriggeredAt DateTime?
+  createdAt DateTime @default(now())
+  notifications Notification[]
+  @@index([userId])
+  @@index([productId])
+  @@index([active, lastCheckedAt])
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  alertId   String?
+  alert     Alert?   @relation(fields: [alertId], references: [id], onDelete: SetNull)
+  /** WEB | EMAIL | MOBILE */
+  channel   String   @default("WEB")
+  title     String
+  body      String
+  data      Json?
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+  @@index([userId, createdAt])
+}
