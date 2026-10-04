@@ -8,6 +8,8 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     services:
       postgres:
         image: postgres:16
@@ -39,6 +41,25 @@ jobs:
 
       - name: Prisma client
         run: npx prisma generate
+
+      - name: Diagnostic en cas d'échec
+        if: failure()
+        run: |
+          {
+            echo "== node =="; node --version
+            echo "== npm ls =="; npm ls prisma @prisma/client 2>&1 || true
+            echo "== prisma --version =="; npx prisma --version 2>&1 || true
+            echo "== prisma validate =="; npx prisma validate 2>&1 || true
+            echo "== prisma generate =="; npx prisma generate 2>&1 || true
+          } > diagnostic.txt
+          git config user.name "ci-diagnostic"
+          git config user.email "ci-diagnostic@users.noreply.github.com"
+          git checkout -B ci-diagnostic
+          git add diagnostic.txt
+          git commit -m "Diagnostic CI"
+          git push origin ci-diagnostic
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Typecheck (tsc --noEmit)
         run: npm run typecheck
