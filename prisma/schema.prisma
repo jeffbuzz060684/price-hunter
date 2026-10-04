@@ -23,6 +23,7 @@ model Merchant {
   id        String  @id // "merchant:ebay"
   name      String
   active    Boolean @default(true)
+  coupons      Coupon[]
   offers    Offer[]
   priceHistory PriceHistory[]
 }
@@ -71,6 +72,7 @@ model Offer {
   confidence        String   @default("UNVERIFIABLE")
   url               String?
   marketplace       Boolean  @default(false)
+  promotions        Promotion[]
   lastCheckedAt     DateTime @default(now())
   createdAt         DateTime @default(now())
   priceHistory      PriceHistory[]
