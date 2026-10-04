@@ -1,0 +1,31 @@
+
+> price-hunter@0.1.0 build
+> node tools/gen-icons.js && next build
+
+/home/runner/work/price-hunter/price-hunter/public/icons/icon-192.png 749 octets
+/home/runner/work/price-hunter/price-hunter/public/icons/icon-512.png 2951 octets
+Icônes générées dans /home/runner/work/price-hunter/price-hunter/public/icons
+⚠ No build cache found. Please configure build caching for faster rebuilds. Read more: https://nextjs.org/docs/messages/no-cache
+Attention: Next.js now collects completely anonymous telemetry regarding usage.
+This information is used to shape Next.js' roadmap and prioritize features.
+You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
+https://nextjs.org/telemetry
+
+  ▲ Next.js 14.2.35
+
+   Creating an optimized production build ...
+ ✓ Compiled successfully
+   Linting and checking validity of types ...
+Failed to compile.
+
+./src/lib/product-matching/match.ts:68:19
+Type error: Type 'Set<string>' can only be iterated through when using the '--downlevelIteration' flag or with a '--target' of 'es2015' or higher.
+
+[0m [90m 66 |[39m   [36mif[39m (ta[33m.[39msize [33m===[39m [35m0[39m [33m||[39m tb[33m.[39msize [33m===[39m [35m0[39m) [36mreturn[39m [35m0[39m[33m;[39m[0m
+[0m [90m 67 |[39m   [36mlet[39m intersection [33m=[39m [35m0[39m[33m;[39m[0m
+[0m[31m[1m>[22m[39m[90m 68 |[39m   [36mfor[39m ([36mconst[39m t [36mof[39m ta) [36mif[39m (tb[33m.[39mhas(t)) intersection[33m++[39m[33m;[39m[0m
+[0m [90m    |[39m                   [31m[1m^[22m[39m[0m
+[0m [90m 69 |[39m   [36mreturn[39m [33mMath[39m[33m.[39mround((intersection [33m/[39m (ta[33m.[39msize [33m+[39m tb[33m.[39msize [33m-[39m intersection)) [33m*[39m [35m100[39m)[33m;[39m[0m
+[0m [90m 70 |[39m }[0m
+[0m [90m 71 |[39m[0m
+Next.js build worker exited with code: 1 and signal: null
