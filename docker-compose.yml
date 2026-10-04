@@ -1,0 +1,20 @@
+# Base de données PostgreSQL locale (développement)
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: pricehunter
+      POSTGRES_PASSWORD: pricehunter
+      POSTGRES_DB: pricehunter
+    ports:
+      - "5432:5432"
+    volumes:
+      - ph_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pricehunter"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  ph_pgdata:

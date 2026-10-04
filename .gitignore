@@ -1,0 +1,29 @@
+# Dépendances
+node_modules/
+
+# Next.js
+.next/
+out/
+build/
+
+# Environnement — JAMAIS de clé réelle dans Git
+.env
+.env.local
+.env.*.local
+
+# Tests
+coverage/
+playwright-report/
+test-results/
+
+# Prisma client généré
+src/generated/
+
+# Divers
+*.log
+.DS_Store
+.idea/
+.vscode/
+
+# Icônes PWA générées par le build (node tools/gen-icons.js)
+public/icons/*.png
