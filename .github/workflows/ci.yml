@@ -46,11 +46,10 @@ jobs:
         if: failure()
         run: |
           {
-            echo "== node =="; node --version
-            echo "== npm ls =="; npm ls prisma @prisma/client 2>&1 || true
-            echo "== prisma --version =="; npx prisma --version 2>&1 || true
-            echo "== prisma validate =="; npx prisma validate 2>&1 || true
             echo "== prisma generate =="; npx prisma generate 2>&1 || true
+            echo "== typecheck =="; npx tsc --noEmit 2>&1 || true
+            echo "== vitest =="; npx vitest run 2>&1 || true
+            echo "== build =="; npm run build 2>&1 || true
           } > diagnostic.txt
           git config user.name "ci-diagnostic"
           git config user.email "ci-diagnostic@users.noreply.github.com"
