@@ -42,24 +42,6 @@ jobs:
       - name: Prisma client
         run: npx prisma generate
 
-      - name: Diagnostic en cas d'échec
-        if: failure()
-        run: |
-          {
-            echo "== prisma generate =="; npx prisma generate 2>&1 || true
-            echo "== typecheck =="; npx tsc --noEmit 2>&1 || true
-            echo "== vitest =="; npx vitest run 2>&1 || true
-            echo "== build =="; npm run build 2>&1 || true
-          } > diagnostic.txt
-          git config user.name "ci-diagnostic"
-          git config user.email "ci-diagnostic@users.noreply.github.com"
-          git checkout -B ci-diagnostic
-          git add diagnostic.txt
-          git commit -m "Diagnostic CI"
-          git push origin ci-diagnostic
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Typecheck (tsc --noEmit)
         run: npm run typecheck
 
@@ -68,3 +50,19 @@ jobs:
 
       - name: Build Next.js
         run: npm run build
+
+      - name: Diagnostic en cas d'échec
+        if: failure()
+        run: |
+          npx prisma generate > diag-prisma.txt 2>&1 || true
+          npx tsc --noEmit > diag-typecheck.txt 2>&1 || true
+          npx vitest run --reporter=dot > diag-vitest.txt 2>&1 || true
+          npm run build > diag-build.txt 2>&1 || true
+          git config user.name "ci-diagnostic"
+          git config user.email "ci-diagnostic@users.noreply.github.com"
+          git checkout -B ci-diagnostic
+          git add diag-prisma.txt diag-typecheck.txt diag-vitest.txt diag-build.txt
+          git commit -m "Diagnostic CI"
+          git push --force origin ci-diagnostic
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
