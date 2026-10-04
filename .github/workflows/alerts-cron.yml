@@ -1,0 +1,33 @@
+name: Vérification des alertes (cron)
+
+on:
+  schedule:
+    # UTC — 17 past every 6 hours (03:17, 09:17, 15:17, 21:17 UTC)
+    - cron: "17 */6 * * *"
+  workflow_dispatch: {}
+
+jobs:
+  check-alerts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Installation des dépendances
+        run: npm ci
+
+      - name: Prisma client
+        run: npx prisma generate
+
+      - name: Vérification des alertes
+        run: npx tsx scripts/check-alerts.ts
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
+          EBAY_CLIENT_ID: ${{ secrets.EBAY_CLIENT_ID }}
+          EBAY_CLIENT_SECRET: ${{ secrets.EBAY_CLIENT_SECRET }}
+          EBAY_MARKETPLACE_ID: EBAY_FR
